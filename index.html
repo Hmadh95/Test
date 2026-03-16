@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="بوابة الزفاف">
+<meta name="theme-color" content="#C9A84C">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<title>بوابة الزفاف</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN VIEW ═══════════════ -->
+<div id="view-login" class="view active">
+  <div class="login-box">
+    <div class="ornament">✦ ✦ ✦</div>
+    <div class="logo-title">بوابة الزفاف</div>
+    <div class="logo-sub">نظام إدارة الضيوف</div>
+    <div class="divider"><span>❧</span></div>
+    <div class="err-box" id="login-err"></div>
+    <label class="field-label">اسم المستخدم</label>
+    <input class="field-input" id="login-user" placeholder="أدخل اسم المستخدم" autocomplete="username">
+    <label class="field-label">كلمة المرور</label>
+    <input class="field-input" id="login-pass" type="password" placeholder="••••••••"
+      autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()">
+    <button class="btn-primary" onclick="doLogin()">🔑 &nbsp; دخول</button>
+    <div class="register-link">ليس لديك حساب؟ <a onclick="showRegister()">إنشاء حساب جديد</a></div>
+  </div>
+</div>
+
+<!-- ═══════════════ REGISTER VIEW ═══════════════ -->
+<div id="view-register" class="view">
+  <div class="login-center">
+    <div class="login-box">
+      <div class="ornament">✦ ✦ ✦</div>
+      <div class="logo-title">حساب جديد</div>
+      <div class="logo-sub">أنشئ حسابك لحفظ بياناتك</div>
+      <div class="divider"><span>❧</span></div>
+      <div class="err-box" id="reg-err"></div>
+      <label class="field-label">اسم المستخدم</label>
+      <input class="field-input" id="reg-user" placeholder="اختر اسم مستخدم">
+      <label class="field-label">كلمة المرور</label>
+      <input class="field-input" id="reg-pass" type="password" placeholder="8 أحرف على الأقل">
+      <label class="field-label">تأكيد كلمة المرور</label>
+      <input class="field-input" id="reg-pass2" type="password" placeholder="أعد كتابة كلمة المرور"
+        onkeydown="if(event.key==='Enter') doRegister()">
+      <button class="btn-primary" onclick="doRegister()">✅ &nbsp; إنشاء الحساب</button>
+      <div class="register-link">لديك حساب؟ <a onclick="showLogin()">تسجيل الدخول</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SCANNER VIEW ═══════════════ -->
+<div id="view-scanner" class="view">
+  <nav>
+    <div class="nav-brand">✦ بوابة الزفاف</div>
+    <div class="nav-right">
+      <span class="nav-user-name" id="nav-username"></span>
+      <button class="btn-nav" onclick="doLogout()">خروج</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <header>
+      <div class="hdr-ornament">✦ ✦ ✦</div>
+      <h1>تسجيل الحضور</h1>
+      <p id="guest-count-label">جاري التحميل...</p>
+      <div class="hdivider"><span>❧</span></div>
+    </header>
+
+    <!-- Mini Stats -->
+    <div class="mini-stats">
+      <div class="mini-stat"><div class="mini-num" id="st-total">0</div><div class="mini-lbl">المدعوون</div></div>
+      <div class="mini-stat g"><div class="mini-num" id="st-checked">0</div><div class="mini-lbl">حضروا</div></div>
+      <div class="mini-stat r"><div class="mini-num" id="st-absent">0</div><div class="mini-lbl">غائبون</div></div>
+    </div>
+
+    <!-- Import CSV -->
+    <div class="import-zone" onclick="document.getElementById('file-input').click()">
+      <input type="file" id="file-input" accept=".csv" onchange="importCSV(event)">
+      <h3>📂 رفع قائمة المدعوين</h3>
+      <p>اضغط لرفع CSV — سيتم الحفظ تلقائياً</p>
+    </div>
+    <div class="import-info" id="import-info"></div>
+
+    <!-- Camera -->
+    <div class="card">
+      <div class="camera-wrap">
+        <div id="reader"></div>
+        <div class="scan-frame"><div class="scan-line"></div></div>
+      </div>
+      <button class="btn-cam btn-start" id="cam-btn" onclick="toggleCamera()">
+        📷 &nbsp; تشغيل الكاميرا
+      </button>
+    </div>
+
+    <!-- Result -->
+    <div id="result-section">
+      <div id="result-card" class="result-card"></div>
+      <button class="btn-clear" onclick="clearResult()">↩ &nbsp; مسح والمتابعة</button>
+    </div>
+
+    <!-- Log -->
+    <div class="card">
+      <div class="section-actions">
+        <div class="section-title" style="flex:1">سجل الدخول</div>
+        <button class="btn-clear-log" onclick="clearLog()">مسح السجل</button>
+      </div>
+      <div id="log-list"><div class="empty-log">لا توجد عمليات تسجيل بعد</div></div>
+    </div>
+
+    <footer>بوابة حفل الزفاف · v1.0</footer>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<script>
+// ════════════════════════════════════════════
+//  STORAGE HELPERS — كل شيء يُحفظ في localStorage
+// ════════════════════════════════════════════
+
+const USERS_KEY   = 'wg_users';      // { username → hashedPass }
+const SESSION_KEY = 'wg_session';    // username المسجّل حالياً
+const DATA_KEY    = u => `wg_data_${u}`;   // قائمة المدعوين لكل مستخدم
+const LOG_KEY     = u => `wg_log_${u}`;    // سجل الدخول لكل مستخدم
+
+// hash بسيط لكلمة المرور (لا تُحفظ نصاً)
+function simpleHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+  }
+  return h.toString(36);
+}
+
+function getUsers()   { return JSON.parse(localStorage.getItem(USERS_KEY)  || '{}'); }
+function getSession() { return localStorage.getItem(SESSION_KEY) || null; }
+function getGuests(u) { return JSON.parse(localStorage.getItem(DATA_KEY(u)) || '{}'); }
+function getLog(u)    { return JSON.parse(localStorage.getItem(LOG_KEY(u))  || '[]'); }
+function saveGuests(u, data) { localStorage.setItem(DATA_KEY(u), JSON.stringify(data)); }
+function saveLog(u, log)     { localStorage.setItem(LOG_KEY(u),  JSON.stringify(log));  }
+
+// ════════════════════════════════════════════
+//  APP STATE
+// ════════════════════════════════════════════
+let currentUser  = null;
+let guests       = {};
+let scanLog      = [];
+let scannerActive= false;
+let html5QrCode  = null;
+let lastScanned  = null;
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+window.addEventListener('load', () => {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+  const saved = getSession();
+  if (saved) {
+    currentUser = saved;
+    enterScanner();
+  } else {
+    showView('view-login');
+  }
+});
+
+// ════════════════════════════════════════════
+//  VIEW MANAGEMENT
+// ════════════════════════════════════════════
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  el.scrollTop = 0;
+}
+function showRegister() { showView('view-register'); }
+function showLogin()    { showView('view-login'); }
+
+// ════════════════════════════════════════════
+//  AUTH
+// ════════════════════════════════════════════
+function doLogin() {
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err  = document.getElementById('login-err');
+  err.classList.remove('show');
+
+  if (!user || !pass) {
+    err.textContent = 'أدخل اسم المستخدم وكلمة المرور';
+    err.classList.add('show'); return;
+  }
+
+  const users = getUsers();
+  if (!users[user]) {
+    err.textContent = 'اسم المستخدم غير موجود';
+    err.classList.add('show'); return;
+  }
+  if (users[user] !== simpleHash(pass)) {
+    err.textContent = 'كلمة المرور غير صحيحة';
+    err.classList.add('show'); return;
+  }
+
+  currentUser = user;
+  localStorage.setItem(SESSION_KEY, user);
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  setTimeout(() => enterScanner(), 50);
+}
+
+function doRegister() {
+  const user  = document.getElementById('reg-user').value.trim();
+  const pass  = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  const err   = document.getElementById('reg-err');
+  err.classList.remove('show');
+
+  if (!user || !pass) {
+    err.textContent = 'أدخل اسم المستخدم وكلمة المرور';
+    err.classList.add('show'); return;
+  }
+  if (user.length < 3) {
+    err.textContent = 'اسم المستخدم 3 أحرف على الأقل';
+    err.classList.add('show'); return;
+  }
+  if (pass.length < 6) {
+    err.textContent = 'كلمة المرور 6 أحرف على الأقل';
+    err.classList.add('show'); return;
+  }
+  if (pass !== pass2) {
+    err.textContent = 'كلمتا المرور غير متطابقتين';
+    err.classList.add('show'); return;
+  }
+
+  const users = getUsers();
+  if (users[user]) {
+    err.textContent = 'اسم المستخدم مستخدم مسبقاً';
+    err.classList.add('show'); return;
+  }
+
+  users[user] = simpleHash(pass);
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  currentUser = user;
+  localStorage.setItem(SESSION_KEY, user);
+  document.getElementById('reg-user').value  = '';
+  document.getElementById('reg-pass').value  = '';
+  document.getElementById('reg-pass2').value = '';
+  setTimeout(() => enterScanner(), 50);
+}
+
+function doLogout() {
+  stopCamera();
+  localStorage.removeItem(SESSION_KEY);
+  currentUser = null;
+  guests  = {};
+  scanLog = [];
+  showView('view-login');
+}
+
+// ════════════════════════════════════════════
+//  SCANNER INIT
+// ════════════════════════════════════════════
+function enterScanner() {
+  guests  = getGuests(currentUser);
+  scanLog = getLog(currentUser);
+  document.getElementById('nav-username').textContent = currentUser;
+  updateStats();
+  renderLog();
+  updateGuestLabel();
+  showView('view-scanner');
+}
+
+function updateGuestLabel() {
+  const total = Object.keys(guests).length;
+  document.getElementById('guest-count-label').textContent =
+    total ? `${total} مدعو محمّل` : 'لم يتم رفع قائمة بعد';
+}
+
+function updateStats() {
+  const total   = Object.keys(guests).length;
+  const checked = Object.values(guests).filter(g => g.checked).length;
+  document.getElementById('st-total').textContent   = total;
+  document.getElementById('st-checked').textContent = checked;
+  document.getElementById('st-absent').textContent  = total - checked;
+}
+
+// ════════════════════════════════════════════
+//  IMPORT CSV
+// ════════════════════════════════════════════
+function cleanCode(str) {
+  return str.replace(/\r/g,'').replace(/^\uFEFF/,'').replace(/^"|"$/g,'').trim().toUpperCase();
+}
+
+function importCSV(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const raw   = ev.target.result.replace(/^\uFEFF/,'');
+    const lines = raw.split('\n').filter(l => l.trim());
+    const first = lines[0] ? lines[0].toLowerCase() : '';
+    const start = (first.includes('code') || first.includes('الكود')) ? 1 : 0;
+    const data  = {};
+    // اكتشاف الفاصل تلقائياً: فاصلة منقوطة ; أو فاصلة عادية ,
+    const sampleLine = lines[start] || lines[0] || '';
+    const delimiter  = sampleLine.includes(';') ? ';' : ',';
+    lines.slice(start).forEach(line => {
+      const cols = line.split(delimiter).map(c => c.replace(/\r/g,'').replace(/^"|"$/g,'').trim());
+      const code = cleanCode(cols[0] || '');
+      const name = (cols[1] || 'ضيف').replace(/\r/g,'').trim();
+      if (code) data[code] = { name, checked: false, checkedAt: null };
+    });
+    const count = Object.keys(data).length;
+    const info  = document.getElementById('import-info');
+    if (!count) {
+      info.textContent = '⚠️ لم يتم العثور على بيانات — تحقق من تنسيق الملف';
+      info.className = 'import-info warn'; return;
+    }
+    // دمج مع البيانات الموجودة (الحضور المسجّل مسبقاً لا يُمسح)
+    Object.keys(data).forEach(code => {
+      if (guests[code]) {
+        data[code].checked   = guests[code].checked;
+        data[code].checkedAt = guests[code].checkedAt;
+      }
+    });
+    guests = data;
+    saveGuests(currentUser, guests);
+    updateStats();
+    updateGuestLabel();
+    info.textContent = `✅ تم تحميل ${count} مدعو وحفظهم`;
+    info.className = 'import-info ok';
+    toast(`✅ تم استيراد ${count} مدعو`);
+  };
+  reader.readAsText(file, 'UTF-8');
+  e.target.value = '';
+}
+
+// ════════════════════════════════════════════
+//  CAMERA
+// ════════════════════════════════════════════
+function toggleCamera() { scannerActive ? stopCamera() : startCamera(); }
+
+function startCamera() {
+  html5QrCode = new Html5Qrcode("reader");
+  const btn = document.getElementById('cam-btn');
+  btn.textContent = '⏹  إيقاف الكاميرا';
+  btn.className   = 'btn-cam btn-stop';
+  scannerActive   = true;
+  html5QrCode.start(
+    { facingMode:"environment" },
+    { fps:12, qrbox:{width:220,height:220}, aspectRatio:1.0 },
+    onScanSuccess, ()=>{}
+  ).catch(() => { toast('⚠️ تعذّر الوصول إلى الكاميرا'); stopCamera(); });
+}
+
+function stopCamera() {
+  scannerActive = false;
+  const btn = document.getElementById('cam-btn');
+  btn.textContent = '📷  تشغيل الكاميرا';
+  btn.className   = 'btn-cam btn-start';
+  btn.disabled    = true;
+  if (html5QrCode) {
+    const inst = html5QrCode; html5QrCode = null;
+    inst.stop().catch(()=>{}).finally(() => { try{inst.clear();}catch(e){} btn.disabled=false; });
+  } else { btn.disabled = false; }
+}
+
+function onScanSuccess(code) {
+  const clean = code.trim().replace(/\r/g,'').replace(/\s+/g,'').toUpperCase();
+  if (clean === lastScanned) return;
+  lastScanned = clean;
+  setTimeout(() => { lastScanned = null; }, 3000);
+  processCode(clean);
+}
+
+// ════════════════════════════════════════════
+//  CORE LOGIC
+// ════════════════════════════════════════════
+function processCode(code) {
+  const guest  = guests[code];
+  const now    = new Date();
+  const timeStr= now.toLocaleTimeString('ar-SA', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+  document.getElementById('result-section').style.display = 'block';
+  const card = document.getElementById('result-card');
+
+  if (!guest) {
+    card.className = 'result-card result-error';
+    card.innerHTML = `<span class="result-icon">❌</span>
+      <div class="result-title">كود غير موجود</div>
+      <div class="result-sub">هذا الكود غير مسجّل في قائمة المدعوين</div>`;
+    addLog('غير موجود','err',timeStr);
+    vibrate([200,100,200]); return;
+  }
+
+  if (guest.checked) {
+    card.className = 'result-card result-warn';
+    card.innerHTML = `<span class="result-icon">⚠️</span>
+      <div class="result-title">مستخدم مسبقاً!</div>
+      <div class="result-sub">سُجِّل الدخول في ${guest.checkedAt}<br>لا يمكن استخدامه مرة أخرى</div>`;
+    addLog('كود مكرر','dup',timeStr);
+    vibrate([300,100,300,100,300]); return;
+  }
+
+  // ← حفظ الحضور في localStorage فوراً
+  guests[code].checked   = true;
+  guests[code].checkedAt = timeStr;
+  saveGuests(currentUser, guests);
+  updateStats();
+
+  card.className = 'result-card result-success';
+  card.innerHTML = `<span class="result-icon">✅</span>
+    <div class="result-title">أهلاً وسهلاً!</div>
+    <div class="result-sub">تم تسجيل الدخول بنجاح</div>`;
+  addLog('دخل بنجاح','ok',timeStr);
+  vibrate([100]);
+}
+
+// ════════════════════════════════════════════
+//  LOG
+// ════════════════════════════════════════════
+function addLog(status, type, time) {
+  // حفظ في الذاكرة + localStorage
+  scanLog.unshift({ status, type, time });
+  if (scanLog.length > 100) scanLog.pop();
+  saveLog(currentUser, scanLog);
+  renderLog();
+}
+
+function renderLog() {
+  const list = document.getElementById('log-list');
+  if (!scanLog.length) {
+    list.innerHTML = '<div class="empty-log">لا توجد عمليات تسجيل بعد</div>';
+    return;
+  }
+  list.innerHTML = scanLog.slice(0, 50).map(e => `
+    <div class="log-item">
+      <div class="log-dot ${e.type}"></div>
+      <div class="log-status">${e.status}</div>
+      <div class="log-time">${e.time}</div>
+    </div>`).join('');
+}
+
+function clearLog() {
+  if (!confirm('هل تريد مسح سجل الدخول؟')) return;
+  scanLog = [];
+  saveLog(currentUser, []);
+  renderLog();
+}
+
+// ════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════
+function clearResult() {
+  document.getElementById('result-section').style.display = 'none';
+  lastScanned = null;
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function vibrate(p) { if(navigator.vibrate) navigator.vibrate(p); }
+</script>
+</body>
+</html>
